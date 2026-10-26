@@ -438,7 +438,21 @@
   }
   .tag.plain{color:var(--muted); background:var(--panel-2); font:600 12px "Inter", sans-serif}
   .tag.pres{gap:5px; color:var(--on-accent); background:var(--accent); font:700 12px "Inter", sans-serif}
-  .tag.pres .ico{width:13px; height:13px}
+  .tag.pres .ico, .tag.exam .ico{width:13px; height:13px}
+  .tag.exam{gap:5px; color:var(--bg); background:var(--text); font:700 12px "Inter", sans-serif}
+  .bdg.examen{background:var(--text); color:var(--bg)}
+  .bdg.examen-pronto{background:color-mix(in srgb, var(--text) 13%, transparent); color:var(--text)}
+  .exs{display:flex; flex-direction:column; gap:8px; margin:0 0 18px}
+  .ex-row{position:relative; display:grid; grid-template-columns:52px minmax(0, 1fr); gap:12px; align-items:center;
+    padding:8px 10px; border-radius:12px; background:color-mix(in srgb, var(--panel-2) 75%, transparent); border-left:3px solid var(--cc, var(--text))}
+  .ex-cd{display:flex; flex-direction:column; align-items:center; justify-content:center; height:46px; border-radius:10px;
+    background:var(--text); color:var(--bg); line-height:1.05}
+  .ex-cd b{font-size:18px; font-weight:800}
+  .ex-cd span{font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em}
+  .ex-row.hoy .ex-cd{background:var(--danger); color:var(--on-danger)}
+  .ex-row .meta{display:flex; flex-wrap:wrap; gap:4px 10px; align-items:center; margin-top:3px; font-size:12px; color:var(--muted)}
+  .ex-row .linkish{font-size:14px}
+  .ag-sub{font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin:0 2px 10px}
   .due-c{font-weight:700; color:var(--text)}
   .due-c.late{color:var(--danger)}
   .due-c.soon{color:var(--warn)}
@@ -600,6 +614,19 @@
   .cfg-row .sig{font-family:"JetBrains Mono", monospace; font-size:13px; text-transform:uppercase}
   .cfg-row .sig[readonly]{color:var(--muted)}
   .cfg-scroll{overflow-x:auto}
+  /* Mis asignaturas */
+  .mias-lista{display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:8px}
+  .mia{display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:12px; background:var(--panel-2); cursor:pointer;
+    border-left:3px solid var(--cc, var(--line)); transition:opacity .2s}
+  .mia.off{opacity:.5}
+  .mia.off .mia-n{text-decoration:line-through}
+  .mia .chk{width:20px; height:20px}
+  .mia-n{flex:1; min-width:0; font-size:13.5px; font-weight:600; color:var(--text)}
+  .mia-h{font-size:12px; color:var(--muted); white-space:nowrap}
+  .mia-ex{padding:12px 12px 4px; margin-bottom:10px; border-radius:14px; background:color-mix(in srgb, var(--panel-2) 70%, transparent); border-left:3px solid var(--cc, var(--line))}
+  table.horas button.hora{width:100%; height:32px; border-radius:8px; border:1px dashed var(--line); background:transparent; color:var(--muted);
+    font:600 11px "JetBrains Mono", monospace; cursor:pointer}
+  table.horas button.hora.on{border:1px solid var(--cc, var(--accent)); background:color-mix(in srgb, var(--cc, var(--accent)) 24%, transparent); color:var(--text)}
   table.cfg-h{border-collapse:separate; border-spacing:5px; width:100%; min-width:560px}
   table.cfg-h th{font:600 11.5px "JetBrains Mono", monospace; color:var(--muted); text-align:center; padding:2px}
   table.cfg-h td{padding:0}
@@ -730,7 +757,8 @@
       </div>
       <button class="btn" type="button" id="sem-hoy">Hoy</button>
       <span class="sp"></span>
-      <button class="btn" type="button" id="btn-cfg" data-ico="edit">Cambiar asignaturas</button>
+      <button class="btn" type="button" id="btn-mias" data-ico="book" title="Quítate las que no cursas y añade las de otro curso (solo cambia lo que ves tú)">Mis asignaturas</button>
+      <button class="btn" type="button" id="btn-cfg" data-ico="edit" title="Horario y asignaturas de toda la clase">Cambiar asignaturas</button>
     </div>
     <div class="hor">
       <div class="panel tt">
@@ -738,11 +766,12 @@
         <div class="mob"><div class="dias" id="dias" role="group" aria-label="Día"></div><div id="lista"></div></div>
         <div class="legend">
           <span><span class="bdg entrega">Entrega</span> se entrega ese día</span>
+          <span><span class="bdg examen">Examen</span> examen ese día</span>
           <span><span class="bdg pend">2 pendientes</span> tareas de la asignatura que quedan esa semana</span>
           <span>Pulsa una asignatura para ver sus tareas y ejercicios.</span>
         </div>
       </div>
-      <aside class="panel agenda" id="agenda" aria-label="Entregas de la semana"></aside>
+      <aside class="panel agenda" id="agenda" aria-label="Próximos exámenes y entregas de la semana"></aside>
     </div>
   </section>
 
@@ -812,10 +841,11 @@
     <div class="dlg-h"><h2 id="tarea-h">Nueva tarea</h2><button type="button" class="x" data-close aria-label="Cerrar" data-ico="x"></button></div>
     <div class="dlg-b">
       <label class="f">Título<input class="inp" id="ta-tit" maxlength="140" placeholder="ej. Práctica de hilos en Java"></label>
-      <div class="f"><span id="ta-pres-l">¿Es una presentación?</span>
-        <div class="seg" role="group" aria-labelledby="ta-pres-l">
-          <button type="button" data-pres="no" aria-pressed="true">No, es una tarea</button>
-          <button type="button" data-pres="si" aria-pressed="false">Sí, es una presentación</button>
+      <div class="f"><span id="ta-cat-l">¿Qué es?</span>
+        <div class="seg" role="group" aria-labelledby="ta-cat-l">
+          <button type="button" data-cat="tarea" aria-pressed="true">Tarea</button>
+          <button type="button" data-cat="presentacion" aria-pressed="false">Presentación</button>
+          <button type="button" data-cat="examen" aria-pressed="false">Examen</button>
         </div>
       </div>
       <div class="row2">
@@ -903,6 +933,26 @@
     <div class="dlg-f">
       <button type="button" class="btn" data-close>Cancelar</button>
       <button type="submit" class="btn pri" id="s-ok">Subir para la clase</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ===== Mis asignaturas (de cada uno) ===== -->
+<dialog id="dlg-mias" class="wide" aria-labelledby="mias-h">
+  <form id="f-mias" novalidate>
+    <div class="dlg-h"><h2 id="mias-h">Mis asignaturas</h2><button type="button" class="x" data-close aria-label="Cerrar" data-ico="x"></button></div>
+    <div class="dlg-b">
+      <p class="hint">Solo cambia lo que ves tú. Quita las que no cursas (convalidadas…): su hora queda libre en tu horario y dejan de salirte sus tareas. Añade las de otro curso que sí tengas, con sus horas.</p>
+      <h3>Asignaturas de la clase</h3>
+      <div class="mias-lista" id="mias-clase"></div>
+      <h3>Otras asignaturas que curso</h3>
+      <div id="mias-extra"></div>
+      <div><button type="button" class="btn sm" id="mias-add" data-ico="plus">Añadir asignatura</button></div>
+      <p class="msg" id="mias-msg" role="alert"></p>
+    </div>
+    <div class="dlg-f">
+      <button type="button" class="btn" data-close>Cancelar</button>
+      <button type="submit" class="btn pri" id="mias-ok">Guardar</button>
     </div>
   </form>
 </dialog>
@@ -1046,7 +1096,8 @@ const ICO = {
   search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
   book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14Z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/>',
   x: '<path d="M18 6 6 18M6 6l12 12"/>',
-  pres: '<rect x="3" y="3" width="18" height="12" rx="2"/><path d="M12 15v6M8 21h8M7 11l3-3 3 2 4-4"/>'
+  pres: '<rect x="3" y="3" width="18" height="12" rx="2"/><path d="M12 15v6M8 21h8M7 11l3-3 3 2 4-4"/>',
+  exam: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M9 14l2 2 4-4"/>'
 };
 const ico = n => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${ICO[n] || ''}</svg>`;
 // Solo toca el DOM si el HTML cambia: así las animaciones de entrada no se repiten en cada actualización.
@@ -1066,15 +1117,38 @@ const S = {
   cargado: { tareas: false, ejercicios: false },
   error: { tareas: '', ejercicios: '' },
   vista: 'horario', filtro: store.get('filtro', ''), busca: '',
+  prefs: { quitadas: [], extra: {} },
   semana: 0, dia: 0
 };
 if (!S.sesion?.u || !S.sesion?.nombre) S.sesion = null;
 const yo = () => S.sesion?.u || null;
-const asig = s => S.config.asignaturas[s] || { n: s || 'Sin asignatura', p: '', c: '#7c8594' };
-const siglas = () => S.config.orden.filter(s => S.config.asignaturas[s]);
+/* Mis asignaturas: cada uno puede quitarse asignaturas de la clase (convalidadas…) y añadirse otras (de otro
+   curso), con sus horas. Solo cambia lo que ve esa persona; el horario de la clase es S.config. */
+const extras = () => Object.fromEntries(Object.entries(S.prefs.extra).filter(([k]) => !S.config.asignaturas[k]));
+const quitada = s => S.prefs.quitadas.includes(s);
+const curso = s => (!!S.config.asignaturas[s] && !quitada(s)) || !!extras()[s];
+const asig = s => S.config.asignaturas[s] || S.prefs.extra[s] || { n: s || 'Sin asignatura', p: '', c: '#7c8594' };
+const siglas = () => [...S.config.orden.filter(s => S.config.asignaturas[s] && !quitada(s)), ...Object.keys(extras())];
+// Mi horario de un día: las horas de mis asignaturas añadidas mandan; las que me he quitado quedan libres
+function horarioMio(d) {
+  const base = S.config.horario['d' + d] || [], ex = Object.entries(extras());
+  return Array.from({ length: 6 }, (_, i) => {
+    const mia = ex.find(([, v]) => v.horas.includes(`${d}-${i}`));
+    if (mia) return mia[0];
+    return base[i] && !quitada(base[i]) ? base[i] : '';
+  });
+}
 const hecha = t => !!(yo() && t.hechas[yo()]);
-const visibles = () => S.tareas.filter(t => t.tipo !== 'personal' || t.autor === yo());
+const visibles = () => S.tareas.filter(t => (t.tipo !== 'personal' || t.autor === yo()) && (!t.asig || curso(t.asig)));
 const esPres = t => t.categoria === 'presentacion';
+const esExamen = t => t.categoria === 'examen';
+// Terminada: hecha, o un examen cuya fecha ya pasó (un examen no se queda «vencido»)
+const cerrada = t => hecha(t) || (esExamen(t) && !!t.fecha && t.fecha < hoyISO());
+const CAT = {
+  tarea: { n: 'tarea', N: 'Tarea', fem: true, fecha: 'Fecha de entrega' },
+  presentacion: { n: 'presentación', N: 'Presentación', fem: true, fecha: 'Fecha de la presentación' },
+  examen: { n: 'examen', N: 'Examen', fem: false, fecha: 'Fecha del examen' }
+};
 const porFecha = (a, b) => (a.fecha || '9999').localeCompare(b.fecha || '9999') || a.creado - b.creado;
 
 function normConfig(raw) {
@@ -1094,13 +1168,24 @@ function normConfig(raw) {
   }
   return { asignaturas, orden, horario, actualizado: +raw.actualizado || 0, por: String(raw.por || '') };
 }
+function normPrefs(raw) {
+  const sig = /^[A-Z0-9_-]{1,10}$/, hora = /^[0-4]-[0-5]$/;
+  const quitadas = (Array.isArray(raw?.quitadas) ? raw.quitadas : []).filter(x => sig.test(x));
+  const extra = {};
+  for (const [k, v] of Object.entries(raw?.extra && typeof raw.extra === 'object' ? raw.extra : {})) {
+    if (!sig.test(k) || !v) continue;
+    extra[k] = { n: String(v.n || k).slice(0, 80), p: String(v.p || '').slice(0, 60), c: /^#[0-9a-f]{6}$/i.test(v.c) ? v.c : '#7c8594',
+      horas: (Array.isArray(v.horas) ? v.horas : []).filter(h => hora.test(h)) };
+  }
+  return { quitadas, extra };
+}
 function normTarea(t) {
   if (!t || !t.titulo) return null;
   return {
     _id: t._id, titulo: String(t.titulo).slice(0, 200), desc: String(t.desc || '').slice(0, 3000),
     asig: String(t.asig || ''), fecha: /^\d{4}-\d{2}-\d{2}$/.test(t.fecha) ? t.fecha : '',
     tipo: t.tipo === 'personal' ? 'personal' : 'clase',
-    categoria: t.categoria === 'presentacion' ? 'presentacion' : 'tarea',
+    categoria: ['presentacion', 'examen'].includes(t.categoria) ? t.categoria : 'tarea',
     autor: String(t.autor || ''), autorNombre: String(t.autorNombre || t.autor || ''),
     creado: +t.creado || 0, hechas: t.hechas && typeof t.hechas === 'object' ? t.hechas : {}
   };
@@ -1123,6 +1208,7 @@ async function backendFirebase() {
   const clase = doc(db, 'Clase', '2DAM');
   const tareas = collection(clase, 'Tareas');
   const usuarios = collection(clase, 'Usuarios');
+  const prefs = collection(clase, 'Preferencias');  // mis asignaturas de cada uno
   const archivos = collection(db, 'Codigo', 'Codigos', 'Archivos');
   // La colección es compartida con index.html y SergioJimenezDelOjo/DAM (miles de archivos): solo se piden los de la carpeta 2DAM/.
   const archivosClase = query(archivos, where('carpeta', '>=', CARPETA + '/'), where('carpeta', '<', CARPETA + '0'));
@@ -1139,6 +1225,8 @@ async function backendFirebase() {
     onEjercicios: (ok, ko) => vivo(archivosClase, ok, ko),
     guardarEjercicio: e => setDoc(doc(archivos, e.id), e),
     borrarEjercicio: id => deleteDoc(doc(archivos, id)),
+    onPrefs: (u, ok, ko) => onSnapshot(doc(prefs, u), s => ok(s.exists() ? s.data() : null), ko),
+    guardarPrefs: (u, d) => setDoc(doc(prefs, u), d),
     leerUsuario: async u => { const s = await getDoc(doc(usuarios, u)); return s.exists() ? s.data() : null },
     crearUsuario: (u, datos) => runTransaction(db, async tx => {
       const ref = doc(usuarios, u);
@@ -1153,10 +1241,10 @@ function backendDemo() {
   const KEY = 'clase2dam.demo';
   const leer = () => { try { return { config: null, tareas: {}, archivos: {}, usuarios: {}, ...JSON.parse(localStorage.getItem(KEY) || '{}') } } catch (e) { return { config: null, tareas: {}, archivos: {}, usuarios: {} } } };
   let db = leer();
-  const subs = { config: [], tareas: [], archivos: [] };
+  const subs = { config: [], tareas: [], archivos: [], prefs: [] };
   const copia = o => JSON.parse(JSON.stringify(o));
   const valor = k => k === 'config' ? copia(db.config) : Object.entries(db[k]).map(([id, v]) => ({ ...copia(v), _id: id }));
-  const emitir = k => subs[k].forEach(f => f(valor(k), false));
+  const emitir = k => subs[k].forEach(f => k === 'prefs' ? f() : f(valor(k), false));
   const todo = () => Object.keys(subs).forEach(emitir);
   const canal = 'BroadcastChannel' in window ? new BroadcastChannel(KEY) : null;
   if (canal) canal.onmessage = () => { db = leer(); todo() };
@@ -1173,6 +1261,11 @@ function backendDemo() {
     onEjercicios: on('archivos'),
     guardarEjercicio: async e => { db.archivos[e.id] = copia(e); guardar() },
     borrarEjercicio: async id => { delete db.archivos[id]; guardar() },
+    onPrefs: (u, ok) => {
+      const f = () => ok(copia((db.prefs || {})[u] || null)); subs.prefs.push(f); setTimeout(f, 50);
+      return () => { subs.prefs = subs.prefs.filter(x => x !== f) };
+    },
+    guardarPrefs: async (u, d) => { db.prefs = db.prefs || {}; db.prefs[u] = copia(d); guardar() },
     leerUsuario: async u => db.usuarios[u] || null,
     crearUsuario: async (u, d) => { if (db.usuarios[u]) throw new Error('existe'); db.usuarios[u] = d; guardar() }
   };
@@ -1199,6 +1292,12 @@ function actualizarSync() {
   if (!S.cargado.tareas || !S.cargado.ejercicios) return setSync('conectando');
   setSync(cache.tareas || cache.ejercicios ? 'offline' : 'ok');
 }
+let dejarPrefs = null;
+function suscribirPrefs() {
+  dejarPrefs?.(); dejarPrefs = null;
+  S.prefs = { quitadas: [], extra: {} };
+  if (B && yo()) dejarPrefs = B.onPrefs(yo(), raw => { S.prefs = normPrefs(raw); renderTodo() }, e => console.warn('Mis asignaturas:', e));
+}
 async function conectar() {
   try {
     B = DEMO ? backendDemo() : await backendFirebase();
@@ -1209,6 +1308,7 @@ async function conectar() {
     return;
   }
   actualizarSync();
+  suscribirPrefs();
   B.onConfig(raw => { S.config = normConfig(raw); renderTodo() }, e => console.warn('Configuración:', e));
   B.onTareas((lista, deCache) => {
     S.tareas = lista.map(normTarea).filter(Boolean);
@@ -1282,6 +1382,7 @@ $('#f-login').onsubmit = async e => {
       : await entrar(u, p);
     S.sesion = { u: datos.usuario || u, nombre: datos.nombre || u };
     store.set(CLAVE_SESION, S.sesion);
+    suscribirPrefs();
     $('#dlg-login').close();
     toast(`Hola, ${S.sesion.nombre}`);
     renderTodo();
@@ -1293,6 +1394,7 @@ $('#f-login').onsubmit = async e => {
 const conSesion = fn => (...a) => yo() ? fn(...a) : abrirLogin(() => fn(...a));
 function cerrarSesion() {
   S.sesion = null; store.set(CLAVE_SESION, null);
+  suscribirPrefs();
   $('#user-menu').hidden = true;
   toast('Sesión cerrada');
   renderTodo();
@@ -1318,7 +1420,7 @@ function renderUsuario() {
 }
 function renderContadores() {
   const hoy = hoyISO(), fin = finSemanaBase();
-  const pronto = visibles().filter(t => !hecha(t) && t.fecha && t.fecha <= fin);
+  const pronto = visibles().filter(t => !cerrada(t) && t.fecha && t.fecha <= fin);
   const n = $('#n-tareas');
   contar(n, pronto.length);
   n.classList.toggle('hot', pronto.some(t => diasEntre(hoy, t.fecha) <= 1));
@@ -1349,12 +1451,12 @@ function ir(v, cambiarHash = true) {
   window.scrollTo({ top: 0 });
 }
 function setFiltro(f) {
-  S.filtro = S.config.asignaturas[f] ? f : '';
+  S.filtro = curso(f) ? f : '';
   store.set('filtro', S.filtro);
   renderTareas(); renderEjercicios();
 }
 function chipsHTML(cuenta) {
-  const otras = S.filtro && !S.config.asignaturas[S.filtro];
+  const otras = S.filtro && !curso(S.filtro);
   if (otras) S.filtro = '';
   return `<button type="button" class="chip" data-f="" aria-pressed="${!S.filtro}">Todas</button>` +
     siglas().map(s => `<button type="button" class="chip sc" style="--c:${asig(s).c}" data-f="${esc(s)}" aria-pressed="${S.filtro === s}" title="${esc(asig(s).n)}"><span class="d"></span>${esc(s)}${cuenta[s] ? `<span class="n">${cuenta[s]}</span>` : ''}</button>`).join('');
@@ -1380,7 +1482,7 @@ function semanaPorDefecto() {
   S.hoyVisto = hoyISO();
 }
 function bloques(d) {
-  const h = S.config.horario['d' + d] || [], r = [];
+  const h = horarioMio(d), r = [];
   for (let i = 0; i < 6;) {
     let j = i;
     while (j + 1 < 6 && j !== 2 && h[j + 1] === h[i]) j++;   // no se juntan horas a través del recreo
@@ -1403,13 +1505,17 @@ function celdaHTML(sig, f, a, b, sem) {
   const ini = minutos(FRANJAS[a][0]), fin = minutos(FRANJAS[b][1]);
   const pasada = f < hoy || (f === hoy && min >= fin);
   const ts = tareasCelda(sig, f, sem.fin);
-  const entrega = ts.filter(t => t.fecha === f), pendEntrega = entrega.filter(t => !hecha(t));
-  const despues = f >= hoy ? ts.filter(t => t.fecha !== f && !hecha(t)) : [];   // no recordar en días ya pasados
+  const entrega = ts.filter(t => t.fecha === f && !esExamen(t)), pendEntrega = entrega.filter(t => !hecha(t));
+  const examenes = ts.filter(t => t.fecha === f && esExamen(t));
+  const despues = f >= hoy ? ts.filter(t => t.fecha !== f && !cerrada(t)) : [];   // no recordar en días ya pasados
+  const exLuego = despues.filter(esExamen), tarLuego = despues.filter(t => !esExamen(t));
   let bd = ahora ? '<span class="bdg now">Ahora</span>' : '';
+  if (examenes.length) bd += `<span class="bdg examen">Examen${f === hoy ? ' hoy' : ''}</span>`;
   if (pendEntrega.length) bd += `<span class="bdg entrega">${pendEntrega.every(esPres) ? 'Presentación' : 'Entrega'}${f === hoy ? ' hoy' : ''}${pendEntrega.length > 1 ? ' ×' + pendEntrega.length : ''}</span>`;
   else if (entrega.length) bd += `<span class="bdg ok">${entrega.every(esPres) ? 'Presentado' : 'Entregado'}</span>`;
-  if (despues.length) bd += `<span class="bdg pend">${plural(despues.length, 'pendiente')}</span>`;
-  const lista = ts.map(t => `\n• ${esPres(t) ? 'Presentación: ' : ''}${t.titulo} (${fechaCorta(t.fecha)})${hecha(t) ? ' ✓' : ''}`).join('');
+  if (exLuego.length) bd += `<span class="bdg examen-pronto">Examen el ${fechaCorta(exLuego[0].fecha).split(' ')[0]}</span>`;
+  if (tarLuego.length) bd += `<span class="bdg pend">${plural(tarLuego.length, 'pendiente')}</span>`;
+  const lista = ts.map(t => `\n• ${esPres(t) ? 'Presentación: ' : esExamen(t) ? 'Examen: ' : ''}${t.titulo} (${fechaCorta(t.fecha)})${hecha(t) ? ' ✓' : ''}`).join('');
   const aria = `${m.n}, ${FRANJAS[a][0]} a ${FRANJAS[b][1]}` + (ts.length ? `. ${plural(ts.length, 'tarea')} esta semana` : '');
   const prog = ahora ? `<span class="prog" style="--p:${((min - ini) / (fin - ini)).toFixed(3)}"></span>` : '';
   return `<button type="button" class="cl sc${ahora ? ' ahora' : ''}${pasada ? ' pasada' : ''}" style="--c:${m.c}" data-sig="${esc(sig)}" data-fecha="${f}" title="${esc(m.n + (m.p ? ' · ' + m.p : '') + lista)}" aria-label="${esc(aria)}">
@@ -1466,7 +1572,7 @@ function renderHorario() {
   $('#sem-lbl').textContent = textoSemana(sem);
   $('#sem-hoy').disabled = S.semana === semanaBase();
   const ts = visibles().filter(t => t.fecha && t.fecha >= sem.ini && t.fecha <= sem.fin);
-  const pend = ts.filter(t => !hecha(t)).length;
+  const pend = ts.filter(t => !cerrada(t)).length;
   pintar($('#sem-sub'), `<span>${textoSemana(sem)}</span>` +
     (!S.cargado.tareas ? '' : ts.length ? `<span class="stat">${plural(ts.length, 'entrega')}</span>` + (pend ? `<span class="stat warn">${plural(pend, 'pendiente')}</span>` : '<span class="stat ok">Todo hecho</span>') : '<span class="stat ok">Sin entregas</span>'));
   renderAhora();
@@ -1507,8 +1613,15 @@ function renderHorario() {
 function renderAgenda(sem) {
   const hoy = hoyISO(), el = $('#agenda');
   const ts = visibles().filter(t => t.fecha && t.fecha >= sem.ini && t.fecha <= sem.fin).sort(porFecha);
-  const pend = ts.filter(t => !hecha(t)).length;
-  let h = `<div class="ag-h"><h2>Entregas de la semana</h2>${pend ? `<span class="stat warn">${plural(pend, 'pendiente')}</span>` : ''}</div>`;
+  const pend = ts.filter(t => !cerrada(t)).length;
+  // Apartado de exámenes: los que quedan, sea la semana que sea
+  const exs = visibles().filter(t => esExamen(t) && t.fecha && t.fecha >= hoy).sort(porFecha);
+  let h = `<div class="ag-h"><h2>Próximos exámenes</h2>${exs.length ? `<span class="stat">${exs.length}</span>` : ''}</div>`;
+  if (S.cargado.tareas && !S.error.tareas) {
+    h += exs.length ? `<div class="exs">${exs.slice(0, 6).map(examenHTML).join('')}</div>`
+      : '<p class="hint" style="margin:0 2px 18px">No hay exámenes apuntados. Añádelos con «Nueva tarea» → Examen.</p>';
+  }
+  h += `<div class="ag-h"><h2>Entregas de la semana</h2>${pend ? `<span class="stat warn">${plural(pend, 'pendiente')}</span>` : ''}</div>`;
   if (!S.cargado.tareas) h += cargandoHTML('Cargando tareas…', 2);
   else if (S.error.tareas) h += `<p class="empty">${esc(S.error.tareas)}</p>`;
   else if (!ts.length) h += vacioHTML('Nada que entregar esta semana.', true);
@@ -1521,7 +1634,7 @@ function renderAgenda(sem) {
     }).join('') + '</div>';
   }
   if (S.semana === semanaBase() && S.cargado.tareas) {
-    const venc = visibles().filter(t => t.fecha && t.fecha < hoy && !hecha(t)).length;
+    const venc = visibles().filter(t => t.fecha && t.fecha < hoy && !cerrada(t)).length;
     if (venc) h += `<button type="button" class="btn sm danger vencidas" data-act="vencidas">${plural(venc, 'tarea vencida', 'tareas vencidas')} sin hacer</button>`;
   }
   pintar(el, h);
@@ -1533,8 +1646,8 @@ function abrirCelda(sig, fecha) { celda = { sig, fecha }; pintarCelda(); $('#dlg
 function pintarCelda() {
   const { sig, fecha } = celda, m = asig(sig), sem = semana();
   const ts = visibles().filter(t => t.asig === sig && t.fecha && t.fecha >= sem.ini && t.fecha <= sem.fin).sort(porFecha);
-  const luego = visibles().filter(t => t.asig === sig && !hecha(t) && (!t.fecha || t.fecha > sem.fin)).sort(porFecha);
-  const horas = Object.values(S.config.horario).flat().filter(s => s === sig).length;
+  const luego = visibles().filter(t => t.asig === sig && !cerrada(t) && (!t.fecha || t.fecha > sem.fin)).sort(porFecha);
+  const horas = [0, 1, 2, 3, 4].flatMap(horarioMio).filter(s => s === sig).length;
   const nEj = ejerciciosClase().filter(e => e._asig === sig).length;
   $('#dlg-celda').style.setProperty('--c', m.c);
   $('#c-h').innerHTML = `${tagHTML(sig)}<span>${esc(m.n)}</span>`;
@@ -1548,6 +1661,13 @@ function pintarCelda() {
 }
 
 /* ---------- Tareas ---------- */
+function examenHTML(t) {
+  const n = diasEntre(hoyISO(), t.fecha);
+  const cd = n === 0 ? '<b>Hoy</b>' : n === 1 ? '<b>1</b><span>día</span>' : `<b>${n}</b><span>días</span>`;
+  const color = t.asig ? ` style="--c:${asig(t.asig).c}"` : '';
+  return `<div class="ex-row${t.asig ? ' sc' : ''}${n === 0 ? ' hoy' : ''}"${color} data-id="${esc(t._id)}"><span class="ex-cd" title="${n === 0 ? 'Es hoy' : `Faltan ${plural(n, 'día')}`}">${cd}</span>
+    <div><button type="button" class="linkish" data-act="ver">${esc(t.titulo)}</button><div class="meta">${tagHTML(t.asig)}<span>${fechaLarga(t.fecha)}</span></div></div></div>`;
+}
 function tareaHTML(t, { compacta = false, fecha = true } = {}) {
   const h = hecha(t), n = Object.keys(t.hechas).length, mia = yo() && t.autor === yo();
   let due = '<span></span>';
@@ -1561,14 +1681,15 @@ function tareaHTML(t, { compacta = false, fecha = true } = {}) {
     const d = diasEntre(hoyISO(), t.fecha);
     dueC = `<span class="due-c${!h && d < 0 ? ' late' : !h && d <= 1 ? ' soon' : ''}">${fechaLarga(t.fecha)}</span>`;
   }
-  const pres = esPres(t) ? `<span class="tag pres">${ico('pres')}Presentación</span>` : '';
+  const pres = esPres(t) ? `<span class="tag pres">${ico('pres')}Presentación</span>`
+    : esExamen(t) ? `<span class="tag exam">${ico('exam')}Examen</span>` : '';
   const titulo = compacta ? `<button type="button" class="linkish" data-act="ver">${esc(t.titulo)}</button>` : esc(t.titulo);
   const color = t.asig ? ` style="--c:${asig(t.asig).c}"` : '';
   return `<div class="task${compacta ? ' compact' : ''}${h ? ' done' : ''}${t.asig ? ' sc' : ''}"${color} data-id="${esc(t._id)}">
     <input type="checkbox" class="chk" data-act="marcar"${h ? ' checked' : ''} aria-label="${h ? 'Desmarcar' : 'Marcar como hecha'}: ${esc(t.titulo)}">
     <div class="body">
       <div class="tt"><span>${titulo}</span></div>
-      <div class="meta">${pres}${tagHTML(t.asig)}${dueC}${t.tipo === 'personal' ? '<span class="tag plain">Solo en tu lista</span>' : ''}<span>por ${esc(t.autorNombre || 'anónimo')}</span>${t.tipo === 'clase' && n ? `<span title="Compañeros que ya la han hecho">${n} ${n === 1 ? 'la ha hecho' : 'la han hecho'}</span>` : ''}</div>
+      <div class="meta">${pres}${tagHTML(t.asig)}${dueC}${t.tipo === 'personal' ? '<span class="tag plain">Solo en tu lista</span>' : ''}<span>por ${esc(t.autorNombre || 'anónimo')}</span>${t.tipo === 'clase' && n && !esExamen(t) ? `<span title="Compañeros que ya la han hecho">${n} ${n === 1 ? 'la ha hecho' : 'la han hecho'}</span>` : ''}</div>
       ${!compacta && t.desc ? `<div class="desc">${enlazar(esc(t.desc))}</div>` : ''}
     </div>
     ${compacta ? '' : due}
@@ -1580,7 +1701,7 @@ function tareasAntiguas() {
 }
 function renderTareas() {
   const cuenta = {};
-  visibles().filter(t => !hecha(t)).forEach(t => cuenta[t.asig] = (cuenta[t.asig] || 0) + 1);
+  visibles().filter(t => !cerrada(t)).forEach(t => cuenta[t.asig] = (cuenta[t.asig] || 0) + 1);
   pintar($('#chips-t'), chipsHTML(cuenta));
 
   let aviso = '';
@@ -1597,7 +1718,7 @@ function renderTareas() {
   if (S.error.tareas) return pintar(el, `<p class="empty">${esc(S.error.tareas)}</p>`);
   const hoy = hoyISO(), fin = finSemanaBase();
   const ts = visibles().filter(t => !S.filtro || t.asig === S.filtro).sort(porFecha);
-  const pend = ts.filter(t => !hecha(t));
+  const pend = ts.filter(t => !cerrada(t));
   const grupos = [
     ['Vencidas', pend.filter(t => t.fecha && t.fecha < hoy), 'late'],
     [finde() ? 'Semana que viene' : 'Esta semana', pend.filter(t => t.fecha && t.fecha >= hoy && t.fecha <= fin)],
@@ -1605,8 +1726,9 @@ function renderTareas() {
     ['Sin fecha', pend.filter(t => !t.fecha)]
   ];
   let h = grupos.filter(g => g[1].length).map(([tit, l, cls]) => `<h2 class="group-h ${cls || ''}">${tit} <span class="count">${l.length}</span></h2>${l.map(t => tareaHTML(t)).join('')}`).join('');
-  const hechas = ts.filter(hecha).sort((a, b) => b.hechas[yo()] - a.hechas[yo()]);
-  if (hechas.length) h += `<details class="group"><summary class="group-h">Hechas <span class="count">${hechas.length}</span></summary>${hechas.map(t => tareaHTML(t)).join('')}</details>`;
+  const cuando = t => t.hechas[yo()] || (t.fecha ? desdeISO(t.fecha).getTime() : 0);
+  const hechas = ts.filter(cerrada).sort((a, b) => cuando(b) - cuando(a));
+  if (hechas.length) h += `<details class="group"><summary class="group-h">${hechas.some(t => !hecha(t)) ? 'Hechas y exámenes pasados' : 'Hechas'} <span class="count">${hechas.length}</span></summary>${hechas.map(t => tareaHTML(t)).join('')}</details>`;
   if (!ts.length) h = vacioHTML(`${S.filtro ? `No hay tareas de ${esc(S.filtro)}.` : 'Todavía no hay tareas.'} ${yo() ? 'Pulsa «Nueva tarea» para añadir la primera.' : ''}`);
   else if (!pend.length) h = vacioHTML('¡Todo hecho!', true) + h;
   // Conserva abierto el grupo de hechas si el usuario lo había desplegado.
@@ -1626,21 +1748,22 @@ function verTarea(id) {
   el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
 }
 
-let editandoTarea = null, tipoTarea = 'clase', presTarea = false;
+let editandoTarea = null, tipoTarea = 'clase', catTarea = 'tarea';
 function opcionesAsig(sel, valor, vacia) {
   sel.innerHTML = (vacia ? `<option value="">${vacia}</option>` : '') + siglas().map(s => `<option value="${esc(s)}">${esc(s)} · ${esc(asig(s).n)}</option>`).join('');
-  sel.value = valor && S.config.asignaturas[valor] ? valor : (vacia ? '' : siglas()[0] || '');
+  sel.value = valor && curso(valor) ? valor : (vacia ? '' : siglas()[0] || '');
 }
 function setTipoTarea(t) { tipoTarea = t; $$('#dlg-tarea [data-tipo]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tipo === t)) }
 $$('#dlg-tarea [data-tipo]').forEach(b => b.onclick = () => setTipoTarea(b.dataset.tipo));
-function setPres(si) {
-  presTarea = si;
-  $$('#dlg-tarea [data-pres]').forEach(b => b.setAttribute('aria-pressed', (b.dataset.pres === 'si') === si));
-  $('#ta-fecha-l').textContent = si ? 'Fecha de la presentación' : 'Fecha de entrega';
-  $('#tarea-h').textContent = `${editandoTarea ? 'Editar' : 'Nueva'} ${si ? 'presentación' : 'tarea'}`;
-  $('#ta-ok').textContent = editandoTarea ? 'Guardar cambios' : si ? 'Añadir presentación' : 'Añadir tarea';
+function setCat(c) {
+  catTarea = CAT[c] ? c : 'tarea';
+  const k = CAT[catTarea];
+  $$('#dlg-tarea [data-cat]').forEach(b => b.setAttribute('aria-pressed', b.dataset.cat === catTarea));
+  $('#ta-fecha-l').textContent = k.fecha;
+  $('#tarea-h').textContent = `${editandoTarea ? 'Editar' : k.fem ? 'Nueva' : 'Nuevo'} ${k.n}`;
+  $('#ta-ok').textContent = editandoTarea ? 'Guardar cambios' : `Añadir ${k.n}`;
 }
-$$('#dlg-tarea [data-pres]').forEach(b => b.onclick = () => setPres(b.dataset.pres === 'si'));
+$$('#dlg-tarea [data-cat]').forEach(b => b.onclick = () => setCat(b.dataset.cat));
 const nuevaTarea = conSesion((pre = {}) => abrirTarea(null, pre));
 function abrirTarea(t, pre = {}) {
   editandoTarea = t;
@@ -1651,7 +1774,7 @@ function abrirTarea(t, pre = {}) {
   $('#ta-fecha').value = t ? t.fecha : (pre.fecha || '');
   $('#ta-desc').value = t?.desc || '';
   setTipoTarea(t?.tipo || 'clase');
-  setPres(t ? esPres(t) : false);
+  setCat(t ? t.categoria : (pre.categoria || 'tarea'));
   $('#ta-msg').textContent = '';
   $('#dlg-tarea').showModal();
   $('#ta-tit').focus();
@@ -1661,14 +1784,14 @@ $('#f-tarea').onsubmit = async e => {
   const titulo = $('#ta-tit').value.trim(), msg = $('#ta-msg');
   if (!titulo) { msg.className = 'msg err'; msg.textContent = 'Escribe un título para la tarea.'; return }
   const datos = { titulo, asig: $('#ta-asig').value, fecha: $('#ta-fecha').value, tipo: tipoTarea,
-    categoria: presTarea ? 'presentacion' : 'tarea', desc: $('#ta-desc').value.trim() };
+    categoria: catTarea, desc: $('#ta-desc').value.trim() };
   $('#ta-ok').disabled = true;
   try {
     if (editandoTarea) await B.editarTarea(editandoTarea._id, { ...datos, editado: Date.now() });
     else await B.crearTarea({ id: nuevoId('tarea_'), ...datos, autor: yo(), autorNombre: S.sesion.nombre, creado: Date.now(), hechas: {} });
     $('#dlg-tarea').close();
-    const que = presTarea ? 'Presentación' : 'Tarea';
-    toast(editandoTarea ? `${que} actualizada` : tipoTarea === 'clase' ? `${que} añadida para toda la clase` : `${que} añadida a tu lista`);
+    const k = CAT[catTarea], a = k.fem ? 'a' : 'o';
+    toast(editandoTarea ? `${k.N} actualizad${a}` : tipoTarea === 'clase' ? `${k.N} añadid${a} para toda la clase` : `${k.N} añadid${a} a tu lista`);
   } catch (x) { msg.className = 'msg err'; msg.textContent = mensajeError(x) }
   finally { $('#ta-ok').disabled = false }
 };
@@ -1713,7 +1836,7 @@ function renderEjercicios() {
     pintar(el, vacioHTML(q ? 'Sin resultados.' : S.filtro ? `Todavía no hay ejercicios de ${esc(S.filtro)}. ¡Sube el primero!` : 'Todavía no hay ejercicios. ¡Sube el primero!'));
     return;
   }
-  const grupos = [...siglas(), ...new Set(es.map(e => e._asig).filter(s => !S.config.asignaturas[s]))];
+  const grupos = [...siglas(), ...new Set(es.map(e => e._asig).filter(s => !curso(s)))];
   pintar(el, grupos.map(s => {
     const l = es.filter(e => e._asig === s).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
     if (!l.length) return '';
@@ -1888,6 +2011,102 @@ $('#f-subir').onsubmit = async ev => {
 
 /* ---------- Cambiar asignaturas ---------- */
 let borrador = null;
+/* ---------- Mis asignaturas ---------- */
+let misB = null;
+const abrirMias = conSesion(() => {
+  misB = {
+    quitadas: new Set(S.prefs.quitadas),
+    extras: Object.entries(extras()).map(([sig, v]) => ({ sig, n: v.n, p: v.p, c: v.c, horas: new Set(v.horas), fija: true }))
+  };
+  pintarMias();
+  $('#mias-msg').textContent = '';
+  $('#dlg-mias').showModal();
+});
+function tablaHoras(r) {
+  let h = '<table class="cfg-h horas"><thead><tr><th></th>' + DIAS.map(d => `<th>${d.slice(0, 3)}</th>`).join('') + '</tr></thead><tbody>';
+  FRANJAS.forEach((fr, f) => {
+    if (f === 3) h += '<tr><td></td><td colspan="5" class="rec-td">Recreo</td></tr>';
+    h += `<tr><th>${fr[0]}</th>` + [0, 1, 2, 3, 4].map(d => {
+      const k = `${d}-${f}`, on = r.horas.has(k), base = S.config.horario['d' + d]?.[f] || '';
+      return `<td><button type="button" class="hora${on ? ' on' : ''}" data-h="${k}" aria-pressed="${on}" title="${DIAS[d]} ${fr[0]}${base ? ' · en la clase: ' + esc(base) : ''}">${on ? esc(r.sig || '✓') : esc(base) || '·'}</button></td>`;
+    }).join('') + '</tr>';
+  });
+  return h + '</tbody></table>';
+}
+function pintarMias() {
+  const horasDe = s => Object.values(S.config.horario).flat().filter(x => x === s).length;
+  $('#mias-clase').innerHTML = S.config.orden.filter(s => S.config.asignaturas[s]).map(s => {
+    const m = S.config.asignaturas[s], si = !misB.quitadas.has(s);
+    return `<label class="mia sc${si ? '' : ' off'}" style="--c:${m.c}"><input type="checkbox" class="chk" data-q="${esc(s)}"${si ? ' checked' : ''} aria-label="Curso ${esc(m.n)}">
+      <span class="tag">${esc(s)}</span><span class="mia-n">${esc(m.n)}</span><span class="mia-h">${plural(horasDe(s), 'hora')}</span></label>`;
+  }).join('');
+  $('#mias-extra').innerHTML = misB.extras.length ? misB.extras.map((r, i) => `<div class="mia-ex sc" style="--c:${esc(r.c)}" data-i="${i}">
+    <div class="cfg-row">
+      <input type="color" value="${esc(r.c)}" data-k="c" aria-label="Color">
+      <input class="inp sig" value="${esc(r.sig)}" data-k="sig" placeholder="SIGLA" maxlength="10" spellcheck="false" aria-label="Sigla"${r.fija ? ' readonly title="La sigla no se cambia porque tus tareas la usan"' : ''}>
+      <input class="inp" value="${esc(r.n)}" data-k="n" placeholder="Nombre (ej. Programación de 1º)" maxlength="80" aria-label="Nombre">
+      <input class="inp" value="${esc(r.p)}" data-k="p" placeholder="Profesor/a" maxlength="60" aria-label="Profesor/a">
+      <button type="button" class="btn ghost sm danger" data-del="${i}" aria-label="Quitar ${esc(r.sig || 'asignatura')}">${ico('x')}</button>
+    </div>
+    <p class="hint" style="margin:2px 0 6px">Pulsa las horas en que la tienes:</p>
+    <div class="cfg-scroll">${tablaHoras(r)}</div>
+  </div>`).join('') : '<p class="hint">Ninguna. Si cursas alguna de otro curso, añádela aquí.</p>';
+}
+$('#mias-clase').addEventListener('change', e => {
+  const s = e.target.dataset.q;
+  if (!s) return;
+  e.target.checked ? misB.quitadas.delete(s) : misB.quitadas.add(s);
+  e.target.closest('.mia').classList.toggle('off', !e.target.checked);
+});
+$('#mias-extra').addEventListener('input', e => {
+  const k = e.target.dataset.k, box = e.target.closest('[data-i]'), r = misB.extras[box?.dataset.i];
+  if (!k || !r) return;
+  if (k === 'sig') r.sig = e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+  else r[k] = e.target.value;
+  if (k === 'c') box.style.setProperty('--c', r.c);
+  if (k === 'sig' || k === 'c') box.querySelector('.cfg-scroll').innerHTML = tablaHoras(r);
+});
+$('#mias-extra').addEventListener('click', e => {
+  const box = e.target.closest('[data-i]'), r = misB.extras[box?.dataset.i];
+  const hb = e.target.closest('[data-h]');
+  if (hb && r) {
+    r.horas.has(hb.dataset.h) ? r.horas.delete(hb.dataset.h) : r.horas.add(hb.dataset.h);
+    box.querySelector('.cfg-scroll').innerHTML = tablaHoras(r);
+    return;
+  }
+  const del = e.target.closest('[data-del]');
+  if (del) { misB.extras.splice(+del.dataset.del, 1); pintarMias() }
+});
+$('#mias-add').onclick = () => {
+  const usados = [...Object.values(S.config.asignaturas).map(a => a.c), ...misB.extras.map(r => r.c)];
+  misB.extras.push({ sig: '', n: '', p: '', c: COLORES_EXTRA.find(c => !usados.includes(c)) || COLORES_EXTRA[misB.extras.length % COLORES_EXTRA.length], horas: new Set(), fija: false });
+  pintarMias();
+  $('#mias-extra .mia-ex:last-child [data-k="sig"]').focus();
+};
+$('#f-mias').onsubmit = async e => {
+  e.preventDefault();
+  const msg = $('#mias-msg'), fallo = t => { msg.className = 'msg err'; msg.textContent = t };
+  const extra = {}, ocupadas = {};
+  for (const r of misB.extras) {
+    if (!/^[A-Z0-9_-]{1,10}$/.test(r.sig)) return fallo('Cada asignatura añadida necesita una sigla (letras, números, - o _).');
+    if (S.config.asignaturas[r.sig]) return fallo(`${r.sig} ya es una asignatura de la clase: márcala en la lista de arriba.`);
+    if (extra[r.sig]) return fallo(`La sigla ${r.sig} está repetida.`);
+    if (!r.n.trim()) return fallo(`Ponle nombre a ${r.sig}.`);
+    for (const h of r.horas) {
+      if (ocupadas[h]) return fallo(`${ocupadas[h]} y ${r.sig} están a la misma hora.`);
+      ocupadas[h] = r.sig;
+    }
+    extra[r.sig] = { n: r.n.trim(), p: r.p.trim(), c: /^#[0-9a-f]{6}$/i.test(r.c) ? r.c : '#7c8594', horas: [...r.horas].sort() };
+  }
+  $('#mias-ok').disabled = true;
+  try {
+    await B.guardarPrefs(yo(), { quitadas: [...misB.quitadas].filter(s => S.config.asignaturas[s]), extra, actualizado: Date.now() });
+    $('#dlg-mias').close();
+    toast('Tus asignaturas se han guardado');
+  } catch (x) { fallo(mensajeError(x)) }
+  finally { $('#mias-ok').disabled = false }
+};
+
 const abrirCfg = conSesion(() => {
   const c = S.config;
   borrador = { filas: c.orden.map(s => ({ sig: s, ...c.asignaturas[s], fija: true })), horario: JSON.parse(JSON.stringify(c.horario)) };
@@ -2055,6 +2274,7 @@ window.addEventListener('hashchange', () => ir(location.hash.slice(1), false));
 $('#sem-prev').onclick = () => { S.semana--; renderHorario() };
 $('#sem-next').onclick = () => { S.semana++; renderHorario() };
 $('#sem-hoy').onclick = () => { semanaPorDefecto(); renderHorario() };
+$('#btn-mias').onclick = () => abrirMias();
 $('#btn-cfg').onclick = () => abrirCfg();
 $('#btn-nueva').onclick = () => nuevaTarea();
 $('#btn-subir').onclick = () => abrirSubida();
@@ -2069,7 +2289,7 @@ $('#logout').onclick = cerrarSesion;
 document.addEventListener('click', e => { if (!e.target.closest('.user')) $('#user-menu').hidden = true });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#user-menu').hidden = true });
 window.addEventListener('storage', e => {
-  if (e.key === 'clase2dam.' + CLAVE_SESION) { S.sesion = store.get(CLAVE_SESION, null); renderTodo() }
+  if (e.key === 'clase2dam.' + CLAVE_SESION) { S.sesion = store.get(CLAVE_SESION, null); suscribirPrefs(); renderTodo() }
 });
 
 /* Tema */
