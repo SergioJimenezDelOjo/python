@@ -186,11 +186,7 @@
 
   /* ---------- Contenido ---------- */
   main{max-width:1320px; margin:0 auto; padding:34px 24px 96px}
-  main > section:not([hidden]) > *{animation:entra .6s var(--ease) both}
-  main > section:not([hidden]) > :nth-child(2){animation-delay:.06s}
-  main > section:not([hidden]) > :nth-child(3){animation-delay:.12s}
-  main > section:not([hidden]) > :nth-child(4){animation-delay:.18s}
-  main > section:not([hidden]) > :nth-child(5){animation-delay:.24s}
+  main > section:not([hidden]) > *{animation:entra .45s var(--ease) both}
   @keyframes entra{from{opacity:0; transform:translateY(16px)}}
   #v-tareas{max-width:980px; margin:0 auto}
 
@@ -365,11 +361,11 @@
   .legend{display:flex; gap:8px 18px; flex-wrap:wrap; align-items:center; font-size:12.5px; color:var(--muted); margin:16px 2px 0}
   .legend > span{display:inline-flex; align-items:center; gap:8px}
 
-  /* Animación al cambiar de semana: entra en ola y, si se avanza o retrocede, desde ese lado */
-  .grid.anim .cell, .grid.anim .dh{animation:celda .55s var(--ease) both; animation-delay:calc(var(--i, 0) * 30ms)}
+  /* Animación al cambiar de semana: todo entra a la vez (no de uno en uno), desde el lado hacia el que se avanza */
+  .grid.anim .cell, .grid.anim .dh{animation:celda .45s var(--ease) both}
   .grid.anim[data-dir="next"] .cell, .grid.anim[data-dir="next"] .dh{animation-name:celdaDer}
   .grid.anim[data-dir="prev"] .cell, .grid.anim[data-dir="prev"] .dh{animation-name:celdaIzq}
-  .grid.anim .col-hoy{animation:aparece .7s .2s var(--ease) both}
+  .grid.anim .col-hoy{animation:aparece .45s var(--ease) both}
   @keyframes celda{from{opacity:0; transform:translateY(18px) scale(.95)}}
   @keyframes celdaDer{from{opacity:0; transform:translateX(34px)}}
   @keyframes celdaIzq{from{opacity:0; transform:translateX(-34px)}}
@@ -392,7 +388,7 @@
   .mrow .cell{flex:1}
   .mrow .cl{min-height:78px}
   #lista .rec{margin:6px 0 12px; min-height:20px}
-  #lista.anim .mrow{animation:celda .5s var(--ease) both; animation-delay:calc(var(--i, 0) * 45ms)}
+  #lista.anim .mrow{animation:celda .45s var(--ease) both}
 
   /* Entregas de la semana, como una línea de tiempo */
   .agenda{padding:20px 18px 12px; position:sticky; top:90px}
@@ -415,7 +411,7 @@
   .ag-day.today .ag-d span{color:var(--on-accent)}
   .ag-day.past{opacity:.5}
   .ag-items{min-width:0; display:flex; flex-direction:column; gap:6px}
-  .agenda.anim .ag-day{animation:entra .55s var(--ease) both; animation-delay:calc(.15s + var(--i, 0) * 70ms)}
+  .agenda.anim .ag-day{animation:entra .45s var(--ease) both}
   .agenda .vencidas{margin:6px 0 8px; width:100%}
 
   /* ---------- Selector de asignatura ---------- */
@@ -441,6 +437,11 @@
     font:700 11px "JetBrains Mono", monospace; color:var(--cc, var(--muted)); background:color-mix(in srgb, var(--cc, var(--muted)) 16%, transparent);
   }
   .tag.plain{color:var(--muted); background:var(--panel-2); font:600 12px "Inter", sans-serif}
+  .tag.pres{gap:5px; color:var(--on-accent); background:var(--accent); font:700 12px "Inter", sans-serif}
+  .tag.pres .ico{width:13px; height:13px}
+  .due-c{font-weight:700; color:var(--text)}
+  .due-c.late{color:var(--danger)}
+  .due-c.soon{color:var(--warn)}
 
   /* ---------- Tareas ---------- */
   .group-h{display:flex; align-items:center; gap:10px; margin:30px 2px 12px; font-size:18px; font-weight:750; letter-spacing:-.015em}
@@ -570,7 +571,7 @@
   .dlg-b h3{font-size:14.5px; font-weight:700; margin:8px 0 -4px}
   .dlg-f{display:flex; align-items:center; justify-content:flex-end; gap:8px; flex-wrap:wrap; padding:14px 22px 20px; border-top:1px solid var(--line)}
   .dlg-f .info{margin-right:auto; font-size:12.5px; color:var(--muted)}
-  label.f{display:flex; flex-direction:column; gap:7px; font-size:13px; font-weight:600; color:var(--muted)}
+  label.f, div.f{display:flex; flex-direction:column; gap:7px; font-size:13px; font-weight:600; color:var(--muted)}
   .inp{
     width:100%; height:42px; padding:0 13px; border-radius:11px; outline:none;
     background:var(--panel-2); border:1px solid var(--line); color:var(--text);
@@ -811,9 +812,15 @@
     <div class="dlg-h"><h2 id="tarea-h">Nueva tarea</h2><button type="button" class="x" data-close aria-label="Cerrar" data-ico="x"></button></div>
     <div class="dlg-b">
       <label class="f">Título<input class="inp" id="ta-tit" maxlength="140" placeholder="ej. Práctica de hilos en Java"></label>
+      <div class="f"><span id="ta-pres-l">¿Es una presentación?</span>
+        <div class="seg" role="group" aria-labelledby="ta-pres-l">
+          <button type="button" data-pres="no" aria-pressed="true">No, es una tarea</button>
+          <button type="button" data-pres="si" aria-pressed="false">Sí, es una presentación</button>
+        </div>
+      </div>
       <div class="row2">
         <label class="f">Asignatura<select class="inp" id="ta-asig"></select></label>
-        <label class="f">Fecha de entrega<input class="inp" id="ta-fecha" type="date"></label>
+        <label class="f"><span id="ta-fecha-l">Fecha de entrega</span><input class="inp" id="ta-fecha" type="date"></label>
       </div>
       <div class="seg" role="group" aria-label="Para quién">
         <button type="button" data-tipo="clase" aria-pressed="true">Para toda la clase</button>
@@ -997,6 +1004,12 @@ const diasEntre = (a, b) => Math.round((desdeISO(b) - desdeISO(a)) / 864e5);
 const minutos = s => { const [h, m] = s.split(':').map(Number); return h * 60 + m };
 const plural = (n, s, p = s + 's') => `${n} ${n === 1 ? s : p}`;
 const fechaCorta = f => { const d = desdeISO(f); return `${DIAS_SEM[d.getDay()].slice(0, 3)} ${d.getDate()} ${MESES[d.getMonth()]}` };
+// «Jueves 22 oct», con «Hoy», «Mañana» o «Ayer» delante cuando toca
+function fechaLarga(f) {
+  const d = desdeISO(f), n = diasEntre(hoyISO(), f);
+  const dia = `${DIAS_SEM[d.getDay()][0].toUpperCase()}${DIAS_SEM[d.getDay()].slice(1)} ${d.getDate()} ${MESES[d.getMonth()]}`;
+  return n === 0 ? `Hoy, ${dia}` : n === 1 ? `Mañana, ${dia}` : n === -1 ? `Ayer, ${dia}` : dia;
+}
 function fechaRelativa(f) {
   const n = diasEntre(hoyISO(), f);
   if (n === 0) return 'hoy';
@@ -1032,7 +1045,8 @@ const ICO = {
   code: '<path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/>',
   search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
   book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14Z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/>',
-  x: '<path d="M18 6 6 18M6 6l12 12"/>'
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  pres: '<rect x="3" y="3" width="18" height="12" rx="2"/><path d="M12 15v6M8 21h8M7 11l3-3 3 2 4-4"/>'
 };
 const ico = n => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${ICO[n] || ''}</svg>`;
 // Solo toca el DOM si el HTML cambia: así las animaciones de entrada no se repiten en cada actualización.
@@ -1060,6 +1074,7 @@ const asig = s => S.config.asignaturas[s] || { n: s || 'Sin asignatura', p: '', 
 const siglas = () => S.config.orden.filter(s => S.config.asignaturas[s]);
 const hecha = t => !!(yo() && t.hechas[yo()]);
 const visibles = () => S.tareas.filter(t => t.tipo !== 'personal' || t.autor === yo());
+const esPres = t => t.categoria === 'presentacion';
 const porFecha = (a, b) => (a.fecha || '9999').localeCompare(b.fecha || '9999') || a.creado - b.creado;
 
 function normConfig(raw) {
@@ -1085,6 +1100,7 @@ function normTarea(t) {
     _id: t._id, titulo: String(t.titulo).slice(0, 200), desc: String(t.desc || '').slice(0, 3000),
     asig: String(t.asig || ''), fecha: /^\d{4}-\d{2}-\d{2}$/.test(t.fecha) ? t.fecha : '',
     tipo: t.tipo === 'personal' ? 'personal' : 'clase',
+    categoria: t.categoria === 'presentacion' ? 'presentacion' : 'tarea',
     autor: String(t.autor || ''), autorNombre: String(t.autorNombre || t.autor || ''),
     creado: +t.creado || 0, hechas: t.hechas && typeof t.hechas === 'object' ? t.hechas : {}
   };
@@ -1390,10 +1406,10 @@ function celdaHTML(sig, f, a, b, sem) {
   const entrega = ts.filter(t => t.fecha === f), pendEntrega = entrega.filter(t => !hecha(t));
   const despues = f >= hoy ? ts.filter(t => t.fecha !== f && !hecha(t)) : [];   // no recordar en días ya pasados
   let bd = ahora ? '<span class="bdg now">Ahora</span>' : '';
-  if (pendEntrega.length) bd += `<span class="bdg entrega">Entrega${f === hoy ? ' hoy' : ''}${pendEntrega.length > 1 ? ' ×' + pendEntrega.length : ''}</span>`;
-  else if (entrega.length) bd += '<span class="bdg ok">Entregado</span>';
+  if (pendEntrega.length) bd += `<span class="bdg entrega">${pendEntrega.every(esPres) ? 'Presentación' : 'Entrega'}${f === hoy ? ' hoy' : ''}${pendEntrega.length > 1 ? ' ×' + pendEntrega.length : ''}</span>`;
+  else if (entrega.length) bd += `<span class="bdg ok">${entrega.every(esPres) ? 'Presentado' : 'Entregado'}</span>`;
   if (despues.length) bd += `<span class="bdg pend">${plural(despues.length, 'pendiente')}</span>`;
-  const lista = ts.map(t => `\n• ${t.titulo} (${fechaCorta(t.fecha)})${hecha(t) ? ' ✓' : ''}`).join('');
+  const lista = ts.map(t => `\n• ${esPres(t) ? 'Presentación: ' : ''}${t.titulo} (${fechaCorta(t.fecha)})${hecha(t) ? ' ✓' : ''}`).join('');
   const aria = `${m.n}, ${FRANJAS[a][0]} a ${FRANJAS[b][1]}` + (ts.length ? `. ${plural(ts.length, 'tarea')} esta semana` : '');
   const prog = ahora ? `<span class="prog" style="--p:${((min - ini) / (fin - ini)).toFixed(3)}"></span>` : '';
   return `<button type="button" class="cl sc${ahora ? ' ahora' : ''}${pasada ? ' pasada' : ''}" style="--c:${m.c}" data-sig="${esc(sig)}" data-fecha="${f}" title="${esc(m.n + (m.p ? ' · ' + m.p : '') + lista)}" aria-label="${esc(aria)}">
@@ -1539,13 +1555,20 @@ function tareaHTML(t, { compacta = false, fecha = true } = {}) {
     const d = diasEntre(hoyISO(), t.fecha);
     due = `<span class="due${!h && d < 0 ? ' late' : !h && d <= 1 ? ' soon' : ''}">${fechaRelativa(t.fecha)}<small>${fechaCorta(t.fecha)}</small></span>`;
   }
+  // En las filas compactas (ventana de la asignatura) la fecha va en la línea de abajo; la agenda ya agrupa por día.
+  let dueC = '';
+  if (compacta && fecha && t.fecha) {
+    const d = diasEntre(hoyISO(), t.fecha);
+    dueC = `<span class="due-c${!h && d < 0 ? ' late' : !h && d <= 1 ? ' soon' : ''}">${fechaLarga(t.fecha)}</span>`;
+  }
+  const pres = esPres(t) ? `<span class="tag pres">${ico('pres')}Presentación</span>` : '';
   const titulo = compacta ? `<button type="button" class="linkish" data-act="ver">${esc(t.titulo)}</button>` : esc(t.titulo);
   const color = t.asig ? ` style="--c:${asig(t.asig).c}"` : '';
   return `<div class="task${compacta ? ' compact' : ''}${h ? ' done' : ''}${t.asig ? ' sc' : ''}"${color} data-id="${esc(t._id)}">
     <input type="checkbox" class="chk" data-act="marcar"${h ? ' checked' : ''} aria-label="${h ? 'Desmarcar' : 'Marcar como hecha'}: ${esc(t.titulo)}">
     <div class="body">
       <div class="tt"><span>${titulo}</span></div>
-      <div class="meta">${tagHTML(t.asig)}${t.tipo === 'personal' ? '<span class="tag plain">Solo en tu lista</span>' : ''}<span>por ${esc(t.autorNombre || 'anónimo')}</span>${t.tipo === 'clase' && n ? `<span title="Compañeros que ya la han hecho">${n} ${n === 1 ? 'la ha hecho' : 'la han hecho'}</span>` : ''}</div>
+      <div class="meta">${pres}${tagHTML(t.asig)}${dueC}${t.tipo === 'personal' ? '<span class="tag plain">Solo en tu lista</span>' : ''}<span>por ${esc(t.autorNombre || 'anónimo')}</span>${t.tipo === 'clase' && n ? `<span title="Compañeros que ya la han hecho">${n} ${n === 1 ? 'la ha hecho' : 'la han hecho'}</span>` : ''}</div>
       ${!compacta && t.desc ? `<div class="desc">${enlazar(esc(t.desc))}</div>` : ''}
     </div>
     ${compacta ? '' : due}
@@ -1603,13 +1626,21 @@ function verTarea(id) {
   el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
 }
 
-let editandoTarea = null, tipoTarea = 'clase';
+let editandoTarea = null, tipoTarea = 'clase', presTarea = false;
 function opcionesAsig(sel, valor, vacia) {
   sel.innerHTML = (vacia ? `<option value="">${vacia}</option>` : '') + siglas().map(s => `<option value="${esc(s)}">${esc(s)} · ${esc(asig(s).n)}</option>`).join('');
   sel.value = valor && S.config.asignaturas[valor] ? valor : (vacia ? '' : siglas()[0] || '');
 }
 function setTipoTarea(t) { tipoTarea = t; $$('#dlg-tarea [data-tipo]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tipo === t)) }
 $$('#dlg-tarea [data-tipo]').forEach(b => b.onclick = () => setTipoTarea(b.dataset.tipo));
+function setPres(si) {
+  presTarea = si;
+  $$('#dlg-tarea [data-pres]').forEach(b => b.setAttribute('aria-pressed', (b.dataset.pres === 'si') === si));
+  $('#ta-fecha-l').textContent = si ? 'Fecha de la presentación' : 'Fecha de entrega';
+  $('#tarea-h').textContent = `${editandoTarea ? 'Editar' : 'Nueva'} ${si ? 'presentación' : 'tarea'}`;
+  $('#ta-ok').textContent = editandoTarea ? 'Guardar cambios' : si ? 'Añadir presentación' : 'Añadir tarea';
+}
+$$('#dlg-tarea [data-pres]').forEach(b => b.onclick = () => setPres(b.dataset.pres === 'si'));
 const nuevaTarea = conSesion((pre = {}) => abrirTarea(null, pre));
 function abrirTarea(t, pre = {}) {
   editandoTarea = t;
@@ -1620,6 +1651,7 @@ function abrirTarea(t, pre = {}) {
   $('#ta-fecha').value = t ? t.fecha : (pre.fecha || '');
   $('#ta-desc').value = t?.desc || '';
   setTipoTarea(t?.tipo || 'clase');
+  setPres(t ? esPres(t) : false);
   $('#ta-msg').textContent = '';
   $('#dlg-tarea').showModal();
   $('#ta-tit').focus();
@@ -1628,13 +1660,15 @@ $('#f-tarea').onsubmit = async e => {
   e.preventDefault();
   const titulo = $('#ta-tit').value.trim(), msg = $('#ta-msg');
   if (!titulo) { msg.className = 'msg err'; msg.textContent = 'Escribe un título para la tarea.'; return }
-  const datos = { titulo, asig: $('#ta-asig').value, fecha: $('#ta-fecha').value, tipo: tipoTarea, desc: $('#ta-desc').value.trim() };
+  const datos = { titulo, asig: $('#ta-asig').value, fecha: $('#ta-fecha').value, tipo: tipoTarea,
+    categoria: presTarea ? 'presentacion' : 'tarea', desc: $('#ta-desc').value.trim() };
   $('#ta-ok').disabled = true;
   try {
     if (editandoTarea) await B.editarTarea(editandoTarea._id, { ...datos, editado: Date.now() });
     else await B.crearTarea({ id: nuevoId('tarea_'), ...datos, autor: yo(), autorNombre: S.sesion.nombre, creado: Date.now(), hechas: {} });
     $('#dlg-tarea').close();
-    toast(editandoTarea ? 'Tarea actualizada' : tipoTarea === 'clase' ? 'Tarea añadida para toda la clase' : 'Tarea añadida a tu lista');
+    const que = presTarea ? 'Presentación' : 'Tarea';
+    toast(editandoTarea ? `${que} actualizada` : tipoTarea === 'clase' ? `${que} añadida para toda la clase` : `${que} añadida a tu lista`);
   } catch (x) { msg.className = 'msg err'; msg.textContent = mensajeError(x) }
   finally { $('#ta-ok').disabled = false }
 };
